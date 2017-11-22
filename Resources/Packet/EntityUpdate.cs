@@ -8,11 +8,11 @@ using System;
 namespace Resources.Packet {
     public class EntityUpdate {
         public long guid;
-        public LongVector position;
-        public FloatVector rotation;
-        public FloatVector velocity;
-        public FloatVector acceleration;
-        public FloatVector extraVel;
+        public LongVector? position;
+        public FloatVector? rotation;
+        public FloatVector? velocity;
+        public FloatVector? acceleration;
+        public FloatVector? extraVel;
         public float? viewportPitch;
         public int? physicsFlags;
         public byte? hostility;
@@ -32,9 +32,9 @@ namespace Resources.Packet {
         public byte? entityClass;
         public byte? specialization;
         public float? charge;
-        public FloatVector unused24;
-        public FloatVector unused25;
-        public FloatVector rayHit;
+        public FloatVector? unused24;
+        public FloatVector? unused25;
+        public FloatVector? rayHit;
         public float? HP;
         public float? MP;
         public float? block;
@@ -47,9 +47,9 @@ namespace Resources.Packet {
         public long? unused36;
         public byte? powerBase;
         public int? unused38;
-        public IntVector unused39;
-        public LongVector spawnPos;
-        public IntVector unused41;
+        public IntVector? unused39;
+        public LongVector? spawnPos;
+        public IntVector? unused41;
         public byte? unused42;
         public Part.Item consumable;
         public Part.Item[] equipment;
@@ -64,23 +64,23 @@ namespace Resources.Packet {
                 var writer = new BinaryWriter(stream);
 
                 if (position != null) {
-                    position.Write(writer);
+                    writer.Write(position.Value.GetBytes());
                     Tools.SetBit(ref bitfield, true, 0);
                 }
                 if (rotation != null) {
-                    rotation.Write(writer);
+                    writer.Write(rotation.Value.GetBytes());
                     Tools.SetBit(ref bitfield, true, 1);
                 }
                 if (velocity != null) {
-                    velocity.Write(writer);
+                    writer.Write(velocity.Value.GetBytes());
                     Tools.SetBit(ref bitfield, true, 2);
                 }
                 if (acceleration != null) {
-                    acceleration.Write(writer);
+                    writer.Write(acceleration.Value.GetBytes());
                     Tools.SetBit(ref bitfield, true, 3);
                 }
                 if (extraVel != null) {
-                    extraVel.Write(writer);
+                    writer.Write(extraVel.Value.GetBytes());
                     Tools.SetBit(ref bitfield, true, 4);
                 }
                 if (viewportPitch != null) {
@@ -160,15 +160,15 @@ namespace Resources.Packet {
                     Tools.SetBit(ref bitfield, true, 23);
                 }
                 if (unused24 != null) {
-                    unused24.Write(writer);
+                    writer.Write(unused24.Value.GetBytes());
                     Tools.SetBit(ref bitfield, true, 24);
                 }
                 if (unused25 != null) {
-                    unused25.Write(writer);
+                    writer.Write(unused25.Value.GetBytes());
                     Tools.SetBit(ref bitfield, true, 25);
                 }
                 if (rayHit != null) {
-                    rayHit.Write(writer);
+                    writer.Write(rayHit.Value.GetBytes());
                     Tools.SetBit(ref bitfield, true, 26);
                 }
                 if (HP != null) {
@@ -220,15 +220,15 @@ namespace Resources.Packet {
                     Tools.SetBit(ref bitfield, true, 38);
                 }
                 if (unused39 != null) {
-                    unused39.Write(writer);
+                    writer.Write(unused39.Value.GetBytes());
                     Tools.SetBit(ref bitfield, true, 39);
                 }
                 if (spawnPos != null) {
-                    spawnPos.Write(writer);
+                    writer.Write(spawnPos.Value.GetBytes());
                     Tools.SetBit(ref bitfield, true, 40);
                 }
                 if (unused41 != null) {
-                    unused41.Write(writer);
+                    writer.Write(unused41.Value.GetBytes());
                     Tools.SetBit(ref bitfield, true, 41);
                 }
                 if (unused42 != null) {
@@ -649,29 +649,29 @@ namespace Resources.Packet {
         }
         public void Filter(EntityUpdate previous) {
             if(position != null) {
-                if (Math.Abs(position.x - previous.position.x) < 100000 &&
-                    Math.Abs(position.y - previous.position.y) < 100000 &&
-                    Math.Abs(position.z - previous.position.z) < 100000) {
+                if (Math.Abs(position.Value.x - previous.position.Value.x) < 100000 &&
+                    Math.Abs(position.Value.y - previous.position.Value.y) < 100000 &&
+                    Math.Abs(position.Value.z - previous.position.Value.z) < 100000) {
                     position = null;
                 }
             }
             rotation = null;
             if(velocity != null) {
-                if(Math.Abs(velocity.z - previous.velocity.z) < 2) {
+                if(Math.Abs(velocity.Value.z - previous.velocity.Value.z) < 2) {
                     velocity = null;
                 }
             }
             if (acceleration != null) {
-                if (Math.Abs(acceleration.x - previous.acceleration.x) < 10 &&
-                    Math.Abs(acceleration.y - previous.acceleration.y) < 10 &&
-                    Math.Abs(acceleration.z - previous.acceleration.z) < 10) {
+                if (Math.Abs(acceleration.Value.x - previous.acceleration.Value.x) < 10 &&
+                    Math.Abs(acceleration.Value.y - previous.acceleration.Value.y) < 10 &&
+                    Math.Abs(acceleration.Value.z - previous.acceleration.Value.z) < 10) {
                     acceleration = null;
                 }
             }
             if (extraVel != null) {
-                if(Math.Abs(extraVel.x) < 1 &&
-                    Math.Abs(extraVel.y) < 1 &&
-                    Math.Abs(extraVel.z) < 1) {
+                if(Math.Abs(extraVel.Value.x) < 1 &&
+                    Math.Abs(extraVel.Value.y) < 1 &&
+                    Math.Abs(extraVel.Value.z) < 1) {
                     extraVel = null;
                 }
             }
@@ -707,9 +707,9 @@ namespace Resources.Packet {
             unused25 = null;
             if(rayHit != null) {
                 if(previous.mode == 0 || previous.modeTimer > 1500 || //current could be null
-                    (Math.Abs(rayHit.x - previous.rayHit.x) < 1.5f &&
-                     Math.Abs(rayHit.y - previous.rayHit.y) < 1.5f &&
-                     Math.Abs(rayHit.z - previous.rayHit.z) < 1.5f)) {
+                    (Math.Abs(rayHit.Value.x - previous.rayHit.Value.x) < 1.5f &&
+                     Math.Abs(rayHit.Value.y - previous.rayHit.Value.y) < 1.5f &&
+                     Math.Abs(rayHit.Value.z - previous.rayHit.Value.z) < 1.5f)) {
                     rayHit = null;
                 }
             }

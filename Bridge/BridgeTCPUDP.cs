@@ -150,7 +150,7 @@ namespace Bridge {
                     }
                     catch (IOException) {
                         if (connected) {
-                            SendUDP(new Disconnect() { Guid = guid }.data);
+                            SendUDP(new Disconnect() { Guid = guid }.GetBytes());
                         }
                         break;
                     }
@@ -206,7 +206,7 @@ namespace Bridge {
                     var entityUpdate = new EntityUpdate(datagram);
 
                     if (entityUpdate.guid == guid) {
-                        CwRam.Teleport(entityUpdate.position);
+                        CwRam.Teleport(entityUpdate.position.Value);
                         break;
                     }
                     else {
@@ -227,14 +227,14 @@ namespace Bridge {
                 #endregion
                 case DatagramID.attack:
                     #region attack
-                    var attack = new Attack(datagram);
+                    var attack = Tools.FromBytes<Attack>(datagram);
 
                     var hit = new Hit() {
                         target = attack.Target,
                         damage = attack.Damage,
                         critical = attack.Critical ? 1 : 0,
                         stuntime = attack.Stuntime,
-                        position = players[attack.Target].position,
+                        position = players[attack.Target].position.Value,
                         isYellow = attack.Skill,
                         type = attack.Type,
                         showlight = (byte)(attack.ShowLight ? 1 : 0)
@@ -245,7 +245,7 @@ namespace Bridge {
                 #endregion
                 case DatagramID.shoot:
                     #region shoot
-                    var shootDatagram = new Resources.Datagram.Shoot(datagram);
+                    var shootDatagram = Tools.FromBytes<Resources.Datagram.Shoot>(datagram);
 
                     var shootPacket = new Resources.Packet.Shoot() {
                         position = shootDatagram.Position,
@@ -262,7 +262,7 @@ namespace Bridge {
                 #endregion
                 case DatagramID.proc:
                     #region proc
-                    var proc = new Proc(datagram);
+                    var proc = Tools.FromBytes<Proc>(datagram);
 
                     var passiveProc = new PassiveProc() {
                         target = proc.Target,
@@ -276,7 +276,7 @@ namespace Bridge {
                 #endregion
                 case DatagramID.chat:
                     #region chat
-                    var chat = new Chat(datagram);
+                    var chat = Tools.FromBytes <Chat>(datagram);
                     var chatMessage = new ChatMessage() {
                         sender = chat.Sender,
                         message = chat.Text
@@ -300,7 +300,7 @@ namespace Bridge {
                 #endregion
                 case DatagramID.time:
                     #region time
-                    var igt = new InGameTime(datagram);
+                    var igt = Tools.FromBytes<InGameTime>(datagram);
 
                     var time = new Time() {
                         time = igt.Time
@@ -310,7 +310,7 @@ namespace Bridge {
                 #endregion
                 case DatagramID.interaction:
                     #region interaction
-                    var interaction = new Interaction(datagram);
+                    var interaction = Tools.FromBytes<Interaction>(datagram);
 
                     var entityAction = new EntityAction() {
                         chunkX = interaction.ChunkX,
@@ -324,7 +324,7 @@ namespace Bridge {
                 #endregion
                 case DatagramID.staticUpdate:
                     #region staticUpdate
-                    var staticUpdate = new StaticUpdate(datagram);
+                    var staticUpdate = Tools.FromBytes<StaticUpdate>(datagram);
 
                     var staticEntity = new StaticEntity() {
                         chunkX = (int)(staticUpdate.Position.x / (65536 * 256)),
@@ -349,7 +349,7 @@ namespace Bridge {
                     break;
                 case DatagramID.particle:
                     #region particle
-                    var particleDatagram = new Resources.Datagram.Particle(datagram);
+                    var particleDatagram = Tools.FromBytes<Resources.Datagram.Particle>(datagram);
 
                     var particleSubPacket = new Resources.Packet.Part.Particle() {
                         position = particleDatagram.Position,
@@ -371,7 +371,7 @@ namespace Bridge {
                 #endregion
                 case DatagramID.connect:
                     #region connect
-                    var connect = new Connect(datagram);
+                    var connect = Tools.FromBytes<Connect>(datagram);
                     guid = connect.Guid;
 
                     var join = new Join() {
@@ -388,7 +388,7 @@ namespace Bridge {
                 #endregion
                 case DatagramID.disconnect:
                     #region disconnect
-                    var disconnect = new Disconnect(datagram);
+                    var disconnect = Tools.FromBytes<Disconnect>(datagram);
                     var pdc = new EntityUpdate() {
                         guid = disconnect.Guid,
                         hostility = 255, //workaround for DC because i dont like packet2
@@ -400,11 +400,11 @@ namespace Bridge {
                     break;
                 #endregion
                 case DatagramID.specialMove:
-                    var specialMove = new SpecialMove(datagram);
+                    var specialMove = Tools.FromBytes<SpecialMove>(datagram);
                     switch (specialMove.Id) {
                         case SpecialMoveID.taunt:
                             if (players.ContainsKey(specialMove.Guid)) {
-                                CwRam.Teleport(players[specialMove.Guid].position);
+                                CwRam.Teleport(players[specialMove.Guid].position.Value);
                                 CwRam.Freeze(5000);
                             }
                             break;
@@ -428,7 +428,7 @@ namespace Bridge {
                                     z = 1f
                                 },
                                 alpha = 1f,
-                                position = players[specialMove.Guid].position
+                                position = players[specialMove.Guid].position.Value
                             });
                             smoke.Write(cwriter);
                             break;
@@ -492,7 +492,7 @@ namespace Bridge {
                             var petCall = new SpecialMove() {
                                 Guid = guid
                             };
-                            SendUDP(petCall.data);
+                            SendUDP(petCall.GetBytes());
                             break;
                         default:
                             //unknown type
@@ -512,7 +512,7 @@ namespace Bridge {
                         ShowLight = hit.showlight == 1,
                         Critical = hit.critical == 1
                     };
-                    SendUDP(attack.data);
+                    SendUDP(attack.GetBytes());
                     lastTarget = attack.Target;
                     break;
                 #endregion
@@ -526,7 +526,7 @@ namespace Bridge {
                         Modifier = passiveProc.modifier,
                         Duration = passiveProc.duration
                     };
-                    SendUDP(proc.data);
+                    SendUDP(proc.GetBytes());
 
                     break;
                 #endregion
@@ -541,7 +541,7 @@ namespace Bridge {
                         Particles = shootPacket.particles,
                         Projectile = shootPacket.projectile
                     };
-                    SendUDP(shootDatagram.data);
+                    SendUDP(shootDatagram.GetBytes());
                     break;
                 #endregion
                 case PacketID.chat:
@@ -566,10 +566,7 @@ namespace Bridge {
                         serverUpdate.Write(cwriter);
                     }
                     else {
-                        var chat = new Chat(chatMessage.message) {
-                            Sender = guid//client doesn't send this //(ushort)chatMessage.sender
-                        };
-                        SendUDP(chat.data);
+                        SendUDP(new Chat(guid, chatMessage.message).GetBytes());
                     }
                     break;
                 #endregion
@@ -592,7 +589,7 @@ namespace Bridge {
                     }
                     else {
                         var connect = new Connect();
-                        SendUDP(connect.data);
+                        SendUDP(connect.GetBytes());
                     }
                     break;
                 #endregion
@@ -653,7 +650,7 @@ namespace Bridge {
                     }
                     #region blink
                     if (players.ContainsKey(lastTarget)) {
-                        CwRam.Teleport(players[guid].position);
+                        CwRam.Teleport(players[guid].position.Value);
                     }
                     #endregion
                     break;
@@ -666,7 +663,7 @@ namespace Bridge {
                             Guid = guid,
                             Id = SpecialMoveID.confusion,
                         };
-                        SendUDP(specialMove.data);
+                        SendUDP(specialMove.GetBytes());
                         #endregion
                     }
                     else {
@@ -675,7 +672,7 @@ namespace Bridge {
                             Guid = guid,
                             Id = SpecialMoveID.shadowStep,
                         };
-                        SendUDP(specialMove.data);
+                        SendUDP(specialMove.GetBytes());
                         #endregion
                     }
                     break;
@@ -688,7 +685,7 @@ namespace Bridge {
                             Guid = lastTarget,
                             Id = SpecialMoveID.taunt,
                         };
-                        SendUDP(specialMove.data);
+                        SendUDP(specialMove.GetBytes());
                         #endregion
                     }
                     else {
@@ -753,7 +750,7 @@ namespace Bridge {
                             Guid = guid,
                             Id = SpecialMoveID.smokeBomb,
                         };
-                        SendUDP(specialMove.data);
+                        SendUDP(specialMove.GetBytes());
 
                         var fakeSmoke = new ServerUpdate();
                         fakeSmoke.particles.Add(new Resources.Packet.Part.Particle() {
@@ -768,7 +765,7 @@ namespace Bridge {
                                 z = 1f
                             },
                             alpha = 1f,
-                            position = players[specialMove.Guid].position
+                            position = players[specialMove.Guid].position.Value
                         });
                         fakeSmoke.Write(cwriter);
                         #endregion

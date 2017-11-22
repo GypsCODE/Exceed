@@ -1,63 +1,32 @@
 ﻿using Resources.Utilities;
-using System;
+using System.ComponentModel;
 using System.Drawing;
+using System.Runtime.InteropServices;
 
 namespace Resources.Datagram {
-    public class Particle : Datagram {
-        public LongVector Position {
-            get => new LongVector() {
-                x = BitConverter.ToInt64(data, 1),
-                y = BitConverter.ToInt64(data, 9),
-                z = BitConverter.ToInt64(data, 17)
-            };
-            set {
-                BitConverter.GetBytes(value.x).CopyTo(data, 1);
-                BitConverter.GetBytes(value.y).CopyTo(data, 9);
-                BitConverter.GetBytes(value.z).CopyTo(data, 17);
-            }
-        }
-        public FloatVector Velocity {
-            get => new FloatVector() {
-                x = BitConverter.ToSingle(data, 25),
-                y = BitConverter.ToSingle(data, 29),
-                z = BitConverter.ToSingle(data, 33)
-            };
-            set {
-                BitConverter.GetBytes(value.x).CopyTo(data, 25);
-                BitConverter.GetBytes(value.y).CopyTo(data, 29);
-                BitConverter.GetBytes(value.z).CopyTo(data, 33);
-            }
-        }
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Particle {
+        [DefaultValue((byte)DatagramID.particle)]
+        public DatagramID DatagramID;
+        public LongVector Position;
+        public FloatVector Velocity;
+        public byte ColorA;
+        public byte ColorR;
+        public byte ColorG;
+        public byte ColorB;
+
         public Color Color {
-            get => Color.FromArgb(data[37], data[38], data[39], data[40]);
+            get => Color.FromArgb(ColorA, ColorR, ColorG, ColorB);
             set {
-                data[37] = value.A;
-                data[38] = value.R;
-                data[39] = value.G;
-                data[40] = value.B;
+                ColorA = value.A;
+                ColorR = value.R;
+                ColorG = value.G;
+                ColorB = value.B;
             }
         }
-        public float Size {
-            get => BitConverter.ToSingle(data, 41);
-            set => BitConverter.GetBytes(value).CopyTo(data, 41);
-        }
-        public ushort Count {
-            get => BitConverter.ToUInt16(data, 45);
-            set => BitConverter.GetBytes(value).CopyTo(data, 45);
-        }
-        public ParticleType Type {
-            get => (ParticleType)data[47];
-            set => data[47] = (byte)value;
-        }
-        public float Spread {
-            get => BitConverter.ToSingle(data, 48);
-            set => BitConverter.GetBytes(value).CopyTo(data, 48);
-        }
-
-        public Particle() {
-            data = new byte[52];
-        }
-
-        public Particle(byte[] data) : base(data) { }
+        public float Size;
+        public ushort Count;
+        public ParticleType Type;
+        public float Spread;
     }
 }

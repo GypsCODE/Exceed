@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
@@ -65,6 +66,31 @@ namespace Resources {
                     t.Dispose();
                 }
             }, null, iterations == 1 ? delay : 0, delay);
+        }
+
+        public static T FromBytes<T>(byte[] arr) where T : struct {
+            T str = new T();
+
+            int size = Marshal.SizeOf(str);
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+
+            Marshal.Copy(arr, 0, ptr, size);
+
+            str = (T)Marshal.PtrToStructure(ptr, str.GetType());
+            Marshal.FreeHGlobal(ptr);
+
+            return str;
+        }
+
+        public static byte[] GetBytes<T>(this T str) where T : struct {
+            int size = Marshal.SizeOf(str);
+            byte[] arr = new byte[size];
+
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+            Marshal.StructureToPtr(str, ptr, false);
+            Marshal.Copy(ptr, arr, 0, size);
+            Marshal.FreeHGlobal(ptr);
+            return arr;
         }
     }
 }

@@ -1,16 +1,17 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 
 namespace Resources.Datagram {
-    public class Disconnect : Datagram {
-        public ushort Guid {
-            get => BitConverter.ToUInt16(data, 1);
-            set => BitConverter.GetBytes(value).CopyTo(data, 1);
-        }
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Disconnect {
+        [DefaultValue((byte)DatagramID.disconnect)]
+        public DatagramID DatagramID;
+        public ushort Guid;
 
-        public Disconnect() {
-            data = new byte[3];
+        public Disconnect(ushort guid) {
             DatagramID = DatagramID.disconnect;
+            Guid = guid;
         }
-        public Disconnect(byte[] data) : base(data) { }
     }
 }

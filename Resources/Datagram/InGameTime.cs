@@ -1,17 +1,17 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 
 namespace Resources.Datagram {
-    public class InGameTime : Datagram {
-        public int Time {
-            get => BitConverter.ToInt32(data, 1);
-            set => BitConverter.GetBytes(value).CopyTo(data, 1);
-        }
+    [StructLayout(LayoutKind.Sequential)]
+    public struct InGameTime {
+        [DefaultValue((byte)DatagramID.time)]
+        public DatagramID DatagramID;
+        public int Time;
 
-        public InGameTime() {
-            data = new byte[5];
+        public InGameTime(int time) {
             DatagramID = DatagramID.time;
+            Time = time;
         }
-
-        public InGameTime(byte[] data) : base(data) { }
     }
 }

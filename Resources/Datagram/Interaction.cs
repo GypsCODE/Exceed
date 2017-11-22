@@ -1,24 +1,14 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 
 namespace Resources.Datagram {
-    public class Interaction : Datagram {
-        public ushort ChunkX {
-            get => BitConverter.ToUInt16(data, 1);
-            set => BitConverter.GetBytes(value).CopyTo(data, 1);
-        }
-        public ushort ChunkY {
-            get => BitConverter.ToUInt16(data, 3);
-            set => BitConverter.GetBytes(value).CopyTo(data, 3);
-        }
-        public ushort Index {
-            get => BitConverter.ToUInt16(data, 5);
-            set => BitConverter.GetBytes(value).CopyTo(data, 5);
-        }
-
-        public Interaction() {
-            data = new byte[7];
-            DatagramID = DatagramID.interaction;
-        }
-        public Interaction(byte[] data) : base(data) { }
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Interaction {
+        [DefaultValue((byte)DatagramID.interaction)]
+        public DatagramID DatagramID;
+        public ushort ChunkX;
+        public ushort ChunkY;
+        public ushort Index;
     }
 }

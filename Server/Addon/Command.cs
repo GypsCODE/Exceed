@@ -89,7 +89,7 @@ namespace Server.Addon {
                         var inGameTime = new InGameTime() {
                             Time = (hour * 60 + minute) * 60000
                         };
-                        server.SendUDP(inGameTime.data, source);
+                        server.SendUDP(inGameTime.GetBytes(), source);
                     } catch (Exception) {
                         //invalid syntax
                     }

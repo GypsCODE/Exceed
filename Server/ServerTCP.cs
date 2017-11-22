@@ -217,7 +217,7 @@ namespace Server {
                                     attacker = passiveProc.source,
                                     target = passiveProc.target,
                                     damage = passiveProc.modifier,
-                                    position = players[passiveProc.target].entityData.position,
+                                    position = players[passiveProc.target].entityData.position.Value,
                                     type = DamageType.normal
                                 };
                                 var poisonTick = new ServerUpdate();
@@ -347,7 +347,7 @@ namespace Server {
         }
         public void Poison(ServerUpdate poisonTick, int duration) {
             if(players.ContainsKey(poisonTick.hits[0].target)) {
-                poisonTick.hits[0].position = players[poisonTick.hits[0].target].entityData.position;
+                poisonTick.hits[0].position = players[poisonTick.hits[0].target].entityData.position.Value;
                 poisonTick.Broadcast(players, 0);
                 if(duration > 0) {
                     Task.Delay(500).ContinueWith(t => Poison(poisonTick, duration - 500));

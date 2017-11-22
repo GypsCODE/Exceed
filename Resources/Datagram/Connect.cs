@@ -1,20 +1,19 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 
 namespace Resources.Datagram {
-    public class Connect : Datagram {
-        public ushort Guid {
-            get => BitConverter.ToUInt16(data, 1);
-            set => BitConverter.GetBytes(value).CopyTo(data, 1);
-        }
-        public int Mapseed {
-            get => BitConverter.ToInt32(data, 3);
-            set => BitConverter.GetBytes(value).CopyTo(data, 3);
-        }
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Connect {
+        [DefaultValue((byte)DatagramID.connect)]
+        public DatagramID DatagramID;
+        public ushort Guid;
+        public int Mapseed;
 
-        public Connect() {
-            data = new byte[7];
+        public Connect(ushort guid, int mapseed) : this() {
             DatagramID = DatagramID.connect;
+            Guid = guid;
+            Mapseed = mapseed;
         }
-        public Connect(byte[] data) : base(data) { }
     }
 }

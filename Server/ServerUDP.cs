@@ -150,7 +150,7 @@ namespace Server {
                     var disconnect = new Disconnect() {
                         Guid = (ushort)player.entityData.guid
                     };
-                    BroadcastUDP(disconnect.data);
+                    BroadcastUDP(disconnect.GetBytes());
 
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(newGuid + " disconnected");
@@ -236,7 +236,7 @@ namespace Server {
                 #endregion
                 case DatagramID.attack:
                     #region attack
-                    var attack = new Attack(datagram);
+                    var attack = Tools.FromBytes<Attack>(datagram);
                     source.lastTarget = attack.Target;
                     if (players.ContainsKey(attack.Target)) {//in case the target is a tombstone
                         SendUDP(datagram, players[attack.Target]);
@@ -245,17 +245,17 @@ namespace Server {
                 #endregion
                 case DatagramID.shoot:
                     #region shoot
-                    var shoot = new Resources.Datagram.Shoot(datagram);
+                    var shoot = Tools.FromBytes<Resources.Datagram.Shoot>(datagram);
                     BroadcastUDP(datagram, source); //pass to all players except source
                     break;
                 #endregion
                 case DatagramID.proc:
                     #region proc
-                    var proc = new Proc(datagram);
+                    var proc = Tools.FromBytes<Proc>(datagram);
 
                     switch (proc.Type) {
                         case ProcType.bulwalk:
-                            SendUDP(new Chat(string.Format("bulwalk: {0}% dmg reduction", 1.0f - proc.Modifier)).data, source);
+                            SendUDP(new Chat(0, string.Format("bulwalk: {0}% dmg reduction", 1.0f - proc.Modifier)).GetBytes(), source);
                             break;
                         case ProcType.poison:
                             var poisonTickDamage = new Attack() {
@@ -266,7 +266,7 @@ namespace Server {
                             Func<bool> tick = () => {
                                 bool f = players.ContainsKey(poisonTickDamage.Target);
                                 if (f) {
-                                    SendUDP(poisonTickDamage.data, target);
+                                    SendUDP(poisonTickDamage.GetBytes(), target);
                                 }
                                 return !f;
                             };
@@ -274,7 +274,7 @@ namespace Server {
                             //Poison(players[proc.Target], poisonTickDamage);
                             break;
                         case ProcType.manashield:
-                            SendUDP(new Chat(string.Format("manashield: {0}", proc.Modifier)).data, source);
+                            SendUDP(new Chat(0, string.Format("manashield: {0}", proc.Modifier)).GetBytes(), source);
                             break;
                         case ProcType.warFrenzy:
                         case ProcType.camouflage:
@@ -292,7 +292,7 @@ namespace Server {
                 #endregion
                 case DatagramID.chat:
                     #region chat
-                    var chat = new Chat(datagram);
+                    var chat = Tools.FromBytes<Chat>(datagram);
                     if (chat.Text.StartsWith("/")) {
                         string parameter = string.Empty;
                         string command = chat.Text.Substring(1);
@@ -313,17 +313,17 @@ namespace Server {
                 #endregion
                 case DatagramID.interaction:
                     #region interaction
-                    var interaction = new Interaction(datagram);
+                    var interaction = Tools.FromBytes<Interaction>(datagram);
                     BroadcastUDP(datagram, source); //pass to all players except source
                     break;
                 #endregion
                 case DatagramID.connect:
                     #region connect
-                    var connect = new Connect(datagram) {
-                        Guid = (ushort)source.entityData.guid,
-                        Mapseed = Database.mapseed
-                    };
-                    SendUDP(connect.data, source);
+                    var connect = Tools.FromBytes<Connect>(datagram);
+                    connect.Guid = (ushort)source.entityData.guid;
+                    connect.Mapseed = Database.mapseed;
+                    
+                    SendUDP(connect.GetBytes(), source);
 
                     foreach(Player player in players.Values) {
                         if(player.playing) {
@@ -338,7 +338,7 @@ namespace Server {
                 #endregion
                 case DatagramID.disconnect:
                     #region disconnect
-                    var disconnect = new Disconnect(datagram);
+                    var disconnect = Tools.FromBytes<Disconnect>(datagram);
                     source.playing = false;
                     BroadcastUDP(datagram, source, true);
                     source.entityData = new EntityUpdate() {guid = source.entityData.guid};
@@ -349,12 +349,12 @@ namespace Server {
                 #endregion
                 case DatagramID.specialMove:
                     #region specialMove
-                    var specialMove = new SpecialMove(datagram);
+                    var specialMove = Tools.FromBytes<SpecialMove>(datagram);
                     switch (specialMove.Id) {
                         case SpecialMoveID.taunt:
                             var targetGuid = specialMove.Guid;
                             specialMove.Guid = (ushort)source.entityData.guid;
-                            SendUDP(specialMove.data, players[targetGuid]);
+                            SendUDP(specialMove.GetBytes(), players[targetGuid]);
                             break;
                         case SpecialMoveID.cursedArrow:
                         case SpecialMoveID.arrowRain:
@@ -363,7 +363,7 @@ namespace Server {
                         case SpecialMoveID.iceWave:
                         case SpecialMoveID.confusion:
                         case SpecialMoveID.shadowStep:
-                            BroadcastUDP(specialMove.data, source);
+                            BroadcastUDP(specialMove.GetBytes(), source);
                             break;
                         default:
                             break;
